@@ -1,0 +1,7 @@
+{
+  "name": "menabu-bakery",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-05-15",
+  "assets": { "directory": "./public", "binding": "ASSETS" },
+  "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "menabu-publications" }]
+}
