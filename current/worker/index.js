@@ -90,9 +90,34 @@ async function publications(bucket) {
   return feedResponse(snapshot);
 }
 
+async function wholesaleCatalog(request, env) {
+  const headers = new Headers({
+    'Cache-Control': 'private, no-store',
+    'Vary': 'Authorization',
+    'X-Robots-Tag': 'noindex, nofollow',
+    'X-Content-Type-Options': 'nosniff'
+  });
+  if (request.method !== 'POST') {
+    headers.set('Allow', 'POST');
+    return new Response(null, {status: 405, headers});
+  }
+  const invitation = /^Bearer ([A-Za-z0-9_-]{43})$/.exec(request.headers.get('Authorization') || '');
+  if (!invitation || !env.WHOLESALE_INVITE_HASH) return new Response(null, {status: 403, headers});
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(invitation[1]));
+  const hex = [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
+  if (hex !== env.WHOLESALE_INVITE_HASH) return new Response(null, {status: 403, headers});
+  if (!env.WHOLESALE_PRICEBOOK) return new Response(null, {status: 503, headers});
+  const compressed = Uint8Array.from(atob(env.WHOLESALE_PRICEBOOK), c => c.charCodeAt(0));
+  const body = new Response(compressed).body.pipeThrough(new DecompressionStream('gzip'));
+  headers.set('Content-Type', 'application/json; charset=utf-8');
+  return new Response(body, {headers});
+}
+
 export default {
   async fetch(request, env) {
-    if (new URL(request.url).pathname !== '/api/publications') return env.ASSETS.fetch(request);
+    const path = new URL(request.url).pathname;
+    if (path === '/api/wholesale-catalog') return wholesaleCatalog(request, env);
+    if (path !== '/api/publications') return env.ASSETS.fetch(request);
     if (request.method !== 'GET') return new Response(null, {status: 405, headers: {Allow: 'GET'}});
     return publications(env.BUCKET);
   }

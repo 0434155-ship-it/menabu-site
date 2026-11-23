@@ -10,6 +10,7 @@ function menu(open){
 }
 function route(initial){
  let key=location.hash.slice(1);
+ if(key==='exclusive'){selectCategory('exclusive');key='catalog'}
  if(!Object.hasOwn(names,key)||(SEASONAL[key]&&!SEASONAL[key].open))key='top';
  const separate=separateAreas.has(key);
  document.body.dataset.view=key in SEASONAL?key:'home';document.body.classList.toggle('opt-page',key==='wholesale');
@@ -113,6 +114,66 @@ function pauseReel(value) {
 pauseReel(reelPaused);
 reelPause.addEventListener('click', () => pauseReel(!reelPaused));
 reducedMotion.addEventListener('change', event => pauseReel(event.matches));
+
+// Лента продукции на публичной странице для партнёров.
+const tradeFilm=el('tradeShelf'), tradeTrack=tradeFilm.firstElementChild, tradePause=el('tradePause');
+const tradeFrames=[...tradeTrack.children];
+for(const frame of tradeFrames){
+ const copy=frame.cloneNode(true);
+ copy.setAttribute('aria-hidden','true');
+ copy.querySelector('img').alt='';
+ tradeTrack.append(copy);
+}
+let tradePlaying=!reducedMotion.matches, tradeVisible=false, frameRequest=0, lastTick=0, remainder=0;
+function cancelFilm(){
+ if(frameRequest)cancelAnimationFrame(frameRequest);
+ frameRequest=0;lastTick=0;remainder=0;
+}
+function filmTick(time){
+ frameRequest=0;
+ if(!tradePlaying||!tradeVisible||document.hidden)return;
+ const loop=tradeTrack.children[tradeFrames.length].offsetLeft-tradeTrack.firstElementChild.offsetLeft;
+ if(loop>0&&lastTick){
+  remainder+=Math.min(time-lastTick,80)*.025;
+  const distance=Math.floor(remainder);
+  if(distance){remainder-=distance;tradeFilm.scrollLeft=(tradeFilm.scrollLeft+distance)%loop}
+ }
+ lastTick=time;frameRequest=requestAnimationFrame(filmTick);
+}
+function scheduleFilm(){
+ cancelFilm();
+ if(tradePlaying&&tradeVisible&&!document.hidden)frameRequest=requestAnimationFrame(filmTick);
+}
+function playFilm(playing){
+ tradePlaying=playing;
+ tradePause.dataset.paused=String(!playing);
+ tradePause.setAttribute('aria-label',playing?'Приостановить ленту продукции':'Запустить ленту продукции');
+ scheduleFilm();
+}
+function stepFilm(direction){
+ playFilm(false);
+ const step=tradeFrames[1].offsetLeft-tradeFrames[0].offsetLeft;
+ const loop=tradeTrack.children[tradeFrames.length].offsetLeft-tradeFrames[0].offsetLeft;
+ if(direction<0&&tradeFilm.scrollLeft<1)tradeFilm.scrollLeft=loop;
+ if(direction>0&&tradeFilm.scrollLeft>=loop)tradeFilm.scrollLeft%=loop;
+ tradeFilm.scrollBy({left:direction*step,behavior:reducedMotion.matches?'instant':'smooth'});
+}
+el('tradePrev').onclick=()=>stepFilm(-1);el('tradeNext').onclick=()=>stepFilm(1);
+tradePause.onclick=()=>playFilm(!tradePlaying);
+tradeFilm.addEventListener('pointerdown',()=>playFilm(false),{passive:true});
+tradeFilm.addEventListener('wheel',event=>{if(event.deltaX||event.shiftKey)playFilm(false)},{passive:true});
+tradeFilm.addEventListener('keydown',event=>{
+ if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();stepFilm(event.key==='ArrowLeft'?-1:1)}
+});
+if('IntersectionObserver' in window){
+ new IntersectionObserver(([entry])=>{tradeVisible=entry.isIntersecting;scheduleFilm()}).observe(tradeFilm);
+}else{
+ const updateTradeVisibility=()=>{tradeVisible=!el('wholesale').hidden;scheduleFilm()};
+ document.addEventListener('bakeryroute',updateTradeVisibility);updateTradeVisibility();
+}
+document.addEventListener('visibilitychange',scheduleFilm);
+reducedMotion.addEventListener('change',event=>playFilm(!event.matches));
+playFilm(tradePlaying);
 
 const groups=window.MENU_GROUPS,details=window.MENU_DETAIL,cats=el('foodCats'),list=el('dishList'),card=el('dishCard'),slot=el('deskDish'),dlg=el('menuDialog'),mobile=matchMedia('(max-width:760px)');
 let group=0,chosen=2,unfold=false;

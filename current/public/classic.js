@@ -1,95 +1,15 @@
 
 document.documentElement.classList.add('js');
-// Хлеб — розничные цены из кассы. В остальных категориях сохранены цены прежнего каталога.
 const CATS=[
  {id:'bread',name:'Хлеб на закваске',icon:'i-loaf',img:'1759_1',kick:'холодная ферментация от 12 часов'},
  {id:'puff',name:'Слоёное и булочки',icon:'i-croissant',img:'1992_1',kick:'масло 82,5%, раскатка вручную'},
  {id:'canele',name:'Канеле',icon:'i-canele',img:'1645_2',kick:'бордоская классика'},
  {id:'dessert',name:'Десерты',icon:'i-cake',img:'1727_1',kick:'обновляем витрину каждый сезон'},
- {id:'cakes',name:'Торты целиком',icon:'i-cake',img:'1009_1',kick:'по предзаказу'},
+ {id:'cakes',name:'Торты',icon:'i-cake',img:'1009_1',kick:'целиком или по частям'},
  {id:'sand',name:'Сэндвичи',icon:'i-sandwich',img:'1012_4c',kick:'на нашем хлебе и круассанах'},
+ {id:'exclusive',name:'Исключительно для вас',icon:'i-loaf',img:'1992_1',kick:'готовим по предварительному заказу'},
 ];
-const v=(l,p)=>({l,p});
-const P=[
- // Розница по кассе на 21.11.2026. У остальных фасовок цена уточняется.
- {c:'bread',n:'Гречишный',d:'Гречневый аромат и лёгкая ореховая нотка. 14 часов холодной ферментации на родниковой воде.',v:[v('190 г',190),v('370 г',280),v('640 г',null)],tag:'Хит'},
- {c:'bread',n:'Насущный (тартин)',d:'Выраженный хлебный вкус, плотная хрустящая корка и благородная кислинка.',v:[v('370 г',220),v('640 г',null),v('1,5 кг',null)]},
- {c:'bread',n:'Таёжный',d:'С ржаным солодом, вяленой клюквой и изюмом. Яркий, запоминающийся вкус.',v:[v('370 г',320)]},
- {c:'bread',n:'Артизанский багет',d:'Тонкая хрустящая корка и пористый мякиш.',v:[v('280 г',180)],icon:'i-baguette'},
- {c:'bread',n:'Французская булка',d:'Мягкий пшеничный хлеб на каждый день.',v:[v('370 г',260)]},
- {c:'bread',n:'Тыквенный',d:'С обжаренными тыквенными семечками. Хлеб недели тыквенного спаса.',v:[v('370 г',340),v('340 г',null)],tag:'Сезон'},
- {c:'bread',n:'Тартин со льном',d:'Со льняным семенем и маслянистым послевкусием.',v:[v('370 г',null)]},
- {c:'bread',n:'Деревенский с маслинами',d:'С оливками, оливковым маслом и розмарином.',v:[v('370 г',340)]},
- {c:'bread',n:'Деревенский фалафель',d:'Пряный хлеб с кунжутом.',v:[v('370 г',null)]},
- {c:'bread',n:'Француз с сыром',d:'Пшеничный хлеб с сыром. Хорош к вину.',v:[v('420 г',null)]},
- {c:'bread',n:'Пшенично-полбяной',d:'С полбяной мукой, которая сохраняет пользу злака.',v:[v('370 г',320)]},
- {c:'bread',n:'Никитинский',d:'Пшеничный хлеб на закваске.',v:[v('420 г',280)]},
- {c:'bread',n:'Бородинский',d:'Ржаной хлеб с солодом и кориандром.',v:[v('420 г',320)]},
- {c:'bread',n:'Ржаной',d:'Цельнозерновой ржаной хлеб.',v:[v('400 г',240)]},
- {c:'bread',n:'Хоккайдо',d:'Японский молочный хлеб, мягкий, тает во рту.',v:[v('260 г',null),v('860 г',null)]},
- {c:'bread',n:'Бриошь',d:'Классическая французская бриошь к завтраку с вареньем или кофе.',v:[v('560 г',null)]},
- {c:'bread',n:'Тостовый',d:'Для тостов и сэндвичей, особенно хрустящий после тостера.',v:[v('560 г',null)]},
- {c:'bread',n:'Шоколадный хлеб',d:'С шоколадными прожилками. Почти десерт.',v:[v('220 г',340)]},
- {c:'bread',n:'Кукурузный',d:'Хлеб с кукурузной мукой.',v:[v('400 г',null)]},
- {c:'bread',n:'Чиабатта',d:'Итальянский хлеб с крупными порами.',v:[v('190–210 г',120),v('120 г',null)]},
- {c:'bread',n:'Мини-багет',d:'Небольшой багет на одного.',v:[v('пшеничный',null),v('ржаной',null),v('бородинский',null)],icon:'i-baguette'},
- {c:'bread',n:'Фокачча',d:'С оливковым маслом, хрустящая снаружи и нежная внутри.',v:[v('мини, 140 г',null),v('с вялеными томатами, 500 г',380)]},
- {c:'bread',n:'Булка для бургера',d:'Мягкая, с кунжутом.',v:[v('85 г',null),v('70 г',null)]},
- // слоёное
- {c:'puff',n:'Классический круассан',img:'1020_1',d:'Многослойный, с хрустящей корочкой. Раскатан на сливочном масле 82,5%.',v:[v('55 г',125)]},
- {c:'puff',n:'Миндальный круассан',d:'Самая популярная позиция: миндальный марципан и тёмный ром.',v:[v('120 г',300)],tag:'Хит'},
- {c:'puff',n:'Круассан с нутеллой',img:'2000_1c',d:'Шоколадное тесто и нежная нутелла.',v:[v('95 г',270)]},
- {c:'puff',n:'Гигантский круассан',d:'Круассан весом 1,2 кг на праздник или большую компанию. По предзаказу.',v:[v('1200 г',2500)],tag:'Предзаказ'},
- {c:'puff',n:'Паин манго-маракуйя',d:'Слойка с кремом на белом шоколаде и пюре манго и маракуйи.',v:[v('120 г',280)]},
- {c:'puff',n:'Краффин с карамелью',d:'Круассан в форме маффина с карамелью.',v:[v('130 г',290)]},
- {c:'puff',n:'Конвертик',d:'С заварным кремом и горьким шоколадом.',v:[v('110 г',220)]},
- {c:'puff',n:'Дениш',d:'Слоёная выпечка с фруктовой начинкой.',v:[v('персик',220),v('вишня',265)]},
- {c:'puff',n:'Слойка с яблоком',d:'Красные и зелёные яблоки, корица, крем на белом шоколаде.',v:[v('125 г',315)]},
- {c:'puff',n:'Корзинка с фисташкой',d:'Фисташковый крем на творожном сыре.',v:[v('105 г',195)]},
- {c:'puff',n:'Сплетёнка',d:'С абрикосом, облепихой и марципаном.',v:[v('100 г',240)]},
- {c:'puff',n:'Ягодное сердце',d:'Крем с клубникой и голубикой.',v:[v('95 г',380)]},
- {c:'puff',n:'Бабочка с брусникой',d:'Ягодный конфитюр и крем на белом шоколаде.',v:[v('110 г',295)]},
- {c:'puff',n:'Шайба',d:'Круглая слойка с начинкой.',v:[v('смородина',300),v('нутелла',330)]},
- {c:'puff',n:'Куб',img:'2030_1c',d:'Слоёный куб, щедро наполненный кремом. Сделали чуть меньше, чтобы было удобно взять к кофе.',v:[v('классика',130),v('ваниль',175),v('черника',200),v('малина',205),v('карамель',185)]},
- {c:'puff',n:'Сфера',d:'Слоёная сфера с начинкой.',v:[v('ревень-апельсин',195),v('сгущёнка-орех',195),v('ферреро',320),v('малина',250),v('экзотик',195)]},
- {c:'puff',n:'Булочка с корицей',d:'Классическая синнабон-булочка.',v:[v('100 г',140)]},
- {c:'puff',n:'Маковая булочка',img:'1032_3',d:'Сдобная булочка с щедрой маковой начинкой. Форму выбирали всей пекарней вместе с гостями.',v:[v('150 г',140)]},
- {c:'puff',n:'Сырная булочка',d:'С сыром, сытная.',v:[v('160 г',250)]},
- {c:'puff',n:'Пипасы',d:'Маленькие булочки, 4 штуки в наборе.',v:[v('4 шт',85)]},
- {c:'puff',n:'Пирожок',img:'1504_1',d:'Домашние пирожки.',v:[v('яблоко и груша',80),v('картошка',80),v('мясо и грибы',140)]},
- {c:'puff',n:'Корзинка с тыквой',img:'1540_1',d:'Дрожжевое тесто с начинкой из тыквы, цитруса и кардамона, сверху тыквенные семечки.',v:[v('90 г',110)],tag:'Сезон'},
- {c:'puff',n:'Бублик',d:'С кунжутом или маком. По утрам разбирают быстрее всего, поэтому теперь печём больше.',v:[v('100 г',90),v('мини, 45 г',55)]},
- // канеле
- {c:'canele',n:'Канеле',img:'1645_2',d:'Бордоское пирожное с карамельной корочкой и заварной серединкой.',v:[v('классика',110),v('ваниль',125),v('солёная карамель',135),v('шоколад',140),v('кофе',140),v('малина',150)]},
- // десерты
- {c:'dessert',n:'Эклер ванильный',img:'2093_1',d:'Заварное тесто и ванильный крем.',v:[v('60 г',200)]},
- {c:'dessert',n:'Тарт с ягодами',img:'1459_1',d:'Песочная основа, нежный крем и свежие ягоды.',v:[v('клубника',485),v('голубика',485)]},
- {c:'dessert',n:'ПП-тарт без сахара',img:'1535_1',d:'Веганский, без добавленного сахара. Основа из кешью, овсяных хлопьев, банана и мёда, крем из кешью с апельсиновой цедрой. Фрукты по сезону.',v:[v('манго',510),v('инжир',510),v('малина',510)],tag:'Новинка'},
- {c:'dessert',n:'Малиновый чизкейк',img:'1949_1',d:'Нежный чизкейк с малиной.',v:[v('130 г',350)]},
- {c:'dessert',n:'Сникерс',img:'1949_4',d:'Обновлённый рецепт: арахис, солёная карамель, нежный мусс и шоколад.',v:[v('130 г',370)]},
- {c:'dessert',n:'Манго-маракуйя',d:'Тропический муссовый десерт.',v:[v('155 г',390)]},
- {c:'dessert',n:'Медовик',d:'Кусочек классического медовика.',v:[v('150 г',220)]},
- {c:'dessert',n:'Лимонный кекс',d:'С лимонной глазурью.',v:[v('115 г',170)]},
- {c:'dessert',n:'Кукис шоколадный',d:'Большое печенье с кусочками шоколада.',v:[v('85 г',240)]},
- {c:'dessert',n:'Овсяное печенье с клюквой',d:'',v:[v('40 г',120)]},
- {c:'dessert',n:'Печенье мята-шпинат',d:'Необычное зелёное печенье.',v:[v('50 г',130)]},
- {c:'dessert',n:'Эскимо «Картошка»',d:'Знакомое пирожное в новой форме.',v:[v('50 г',150)]},
- {c:'dessert',n:'Кейк-попс',d:'',v:[v('35 г',150)]},
- {c:'dessert',n:'Шоколадные губки',d:'',v:[v('25 г',135)]},
- {c:'dessert',n:'Ириска',d:'',v:[v('25 г',140)]},
- // торты целиком
- {c:'cakes',n:'Черёмуховый медовик',d:'Целый торт 3,1 кг, порция около 130 г.',v:[v('1/4 · 8 порций',2550),v('1/2 · 12 порций',4950),v('целый · 24 порции',9700)],tag:'Предзаказ'},
- {c:'cakes',n:'Шоколадный «Сан-Себастьян»',d:'Целый торт 2,6 кг, порция около 160 г.',v:[v('1/4 · 4 порции',1690),v('1/2 · 8 порций',3380),v('целый · 16 порций',6490)],tag:'Предзаказ'},
- {c:'cakes',n:'Яблочный тарт татен',d:'Целый тарт 2,2 кг, порция около 140 г.',v:[v('1/4 · 4 порции',1280),v('1/2 · 8 порций',2450),v('целый · 16 порций',4790)],tag:'Предзаказ'},
- {c:'cakes',n:'Медовик',d:'Классический медовик весом 2 кг.',v:[v('2 кг',3900)],tag:'Предзаказ'},
- // сэндвичи
- {c:'sand',n:'С форелью',d:'Слабосолёная форель. На булке или в круассане.',v:[v('сэндвич, 220 г',540),v('круассан, 240 г',580)]},
- {c:'sand',n:'Капрезе',d:'Моцарелла, томаты и песто.',v:[v('сэндвич, 250 г',450),v('круассан, 210 г',490)]},
- {c:'sand',n:'С индейкой',d:'',v:[v('сэндвич, 200 г',400),v('круассан, 200 г',430)]},
- {c:'sand',n:'Цезарь',d:'Курица, салат и соус цезарь.',v:[v('сэндвич, 260 г',420),v('круассан, 250 г',470)]},
- {c:'sand',n:'С ростбифом',d:'',v:[v('сэндвич, 230 г',450),v('круассан, 225 г',490)]},
-];
-P.forEach((p,i)=>p.id='p'+i);
+const P = RETAIL_PRODUCTS;
 
 // сезонная выпечка. Панеттоне, куличи и пасха — составы, вес и цены брони 2026 из Telegram. Штоллен — вкусы и цены ПРИМЕРНЫЕ, уточнить.
 // flavors: [id, название, описание, цена (надбавка, если есть sizes; иначе итоговая), фото, вес, группа]
@@ -118,13 +38,22 @@ const SEASONAL={
 // ---------- состояние ----------
 const store={get(k,d){try{const s=localStorage.getItem(k);return s?JSON.parse(s):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 function restoreCartItem(item) {
-  const product = P.find(p => p.id === item.id);
-  if (product?.c !== 'bread') return item;
-  const variant = product.v.find(v => v.l === item.vl);
-  return {...item, name: product.n, price: variant?.p ?? null, min: product.min || 1};
+  if (!item || !Number.isSafeInteger(item.q) || item.q < 1) return null;
+  if (typeof item.pre === 'string' && Object.hasOwn(SEASONAL, item.pre) && item.id?.startsWith('pre-' + item.pre + '-')) return item;
+  for (const product of P) {
+    const variant = product.v.find(v =>
+      (product.id === item.id && v.l === item.vl) ||
+      ((product.gallery || product.id) === item.id && v.previous !== undefined && v.previous === item.vl)
+    );
+    if (!variant) continue;
+    return {id: product.id, name: product.n, vl: variant.l, price: variant.p, q: item.q,
+      min: product.min || 1, pre: product.c === 'exclusive' ? 'exclusive' : undefined};
+  }
+  return null;
 }
 const savedCart = store.get('mnb-cart', []);
-let cart = Array.isArray(savedCart) ? savedCart.filter(x => x && x.pre !== true).map(restoreCartItem) : [];
+let cart = Array.isArray(savedCart) ? savedCart.map(restoreCartItem).filter(Boolean) : [];
+store.set('mnb-cart', cart);
 let cat='bread';
 const pick={}; // выбранный вариант карточки
 for (const product of P) {
@@ -147,8 +76,11 @@ function renderTabs(){
 }
 const catalogSide = new Map();
 function productViews(id, index) {
-  const options = window.CATALOG_VIEWS[id] || [];
-  return options.length === 1 ? options[0] : (options[index] || []);
+  const product = P.find(p => p.id === id);
+  const variant = product?.v[index];
+  if (!variant || variant.photo === null) return [];
+  const options = window.CATALOG_VIEWS[product.gallery || id] || [];
+  return options.length === 1 ? options[0] : (options[variant.photo ?? index] || []);
 }
 function card(p){
   const vi=pick[p.id]??0, vr=p.v[vi], q=qtyOf(p.id,vr.l);
@@ -157,9 +89,10 @@ function card(p){
   const vars=p.v.length>1?`<div class="vars">${p.v.map((x,i)=>`<button type="button" class="var" data-p="${p.id}" data-i="${i}" aria-pressed="${i===vi}">${esc(x.l)}</button>`).join('')}</div>`:'';
   const unit=p.v.length===1?`<small>${esc(vr.l)}</small>`:'';
   const priced = Number.isFinite(vr.p);
-  const priceLabel = priced ? rub(vr.p) : '<a class="price-inquiry" href="#contacts">Цену уточнить</a>';
+  const priceLabel = priced ? rub(vr.p) : 'Цена по запросу';
   const ctl=q?`<span class="stepper"><button type="button" data-dec="${p.id}" aria-label="Меньше">−</button><span>${q}</span><button type="button" data-inc="${p.id}" aria-label="Больше">+</button></span>`
-           :`<button type="button" class="add" data-add="${p.id}">В корзину</button>`;
+           :`<button type="button" class="add" data-add="${p.id}">${p.c === 'exclusive' ? 'Предзаказать' : 'В корзину'}</button>`;
+  const inquiry = `<a class="price-inquiry" href="tel:+79852270561">${p.c === 'exclusive' ? 'Уточнить предзаказ' : 'Уточнить цену'}</a>`;
   const media = productViews(p.id, vi);
   const detail = media.length > 1;
   const remembered = catalogSide.get(p.id);
@@ -169,7 +102,7 @@ function card(p){
   const ph = media.length ? `<button type="button" class="ph has-img catalog-photo" data-photo="${p.id}" aria-haspopup="dialog" aria-label="${esc(label)}">${tag}<img loading="lazy" decoding="async" src="${mnbMedia(media[side])}" alt="${esc(photoAlt)}">${detail ? '<span class="photo-hint">'+(side ? 'Смотреть крупнее' : 'В разрезе')+'</span>' : ''}</button>` : `<div class="ph">${tag}<svg aria-hidden="true"><use href="#${icon}"/></svg></div>`;
   return `<article class="card" data-card="${p.id}">${ph}
   <h3>${esc(p.n)}</h3><p class="desc">${esc(p.d)}</p>${p.min?`<p class="note-min">Заказ от ${p.min} шт.</p>`:''}${vars}
-  <div class="buy"><span class="price">${priceLabel}${unit}</span>${priced ? ctl : ''}</div></article>`;
+  <div class="buy"><span class="price">${priceLabel}${unit}</span>${priced ? ctl : inquiry}</div></article>`;
 }
 let visibleProducts=8,shownCat='';
 function renderGrid(anim){
@@ -186,14 +119,28 @@ function renderBan(swap){
   if(swap){b.classList.remove('swap');void b.offsetWidth;b.classList.add('swap')}
 }
 document.getElementById('moreProducts').onclick=()=>{const prev=visibleProducts;visibleProducts+=8;renderGrid(false);const added=$('#grid').children[prev];if(added){added.setAttribute('tabindex','-1');added.focus({preventScroll:true});added.scrollIntoView({behavior:'instant',block:'nearest'})}};
-$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(!b)return;cat=b.dataset.c;renderTabs();renderBan(true);renderGrid(true)});
+function selectCategory(id) {
+  if (id === cat) return;
+  cat = id;
+  renderTabs();
+  renderBan(true);
+  renderGrid(true);
+}
+$('#tabs').addEventListener('click', e => {
+  const button = e.target.closest('[data-c]');
+  if (!button) return;
+  selectCategory(button.dataset.c);
+  if (cat === 'exclusive' || location.hash === '#exclusive') {
+    history.replaceState(history.state, '', cat === 'exclusive' ? '#exclusive' : '#catalog');
+  }
+});
 $('#grid').addEventListener('click',e=>{
   const t=e.target.closest('button');if(!t)return;
   if(t.dataset.p){if(pick[t.dataset.p]!==+t.dataset.i)catalogSide.delete(t.dataset.p);pick[t.dataset.p]=+t.dataset.i;renderGrid();return}
   const id=t.dataset.add||t.dataset.inc||t.dataset.dec;const p=P.find(x=>x.id===id);if(!p)return;
   const vr=p.v[pick[id]??0];const min=p.min||1;
   if (!Number.isFinite(vr.p)) return;
-  if(t.dataset.add){flyToCart(t.closest('.card'));addItem({id,name:p.n,vl:vr.l,price:vr.p,min},min)}
+  if(t.dataset.add){flyToCart(t.closest('.card'));addItem({id,name:p.n,vl:vr.l,price:vr.p,min,pre:p.c==='exclusive'?'exclusive':undefined},min)}
   else if(t.dataset.inc)setQty(id,vr.l,qtyOf(id,vr.l)+1,min);
   else setQty(id,vr.l,qtyOf(id,vr.l)-1,min);
   renderGrid();
@@ -254,7 +201,6 @@ function openCart(){view='cart';renderDrawer();$('#drawer').hidden=false;$('#scr
 function closeCart(){$('#drawer').hidden=true;$('#scrim').hidden=true;$('#cartBtn').focus()}
 $('#cartBtn').onclick=openCart;$('#dClose').onclick=closeCart;$('#scrim').onclick=closeCart;
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#drawer').hidden)closeCart()});
-const hasPre=()=>cart.some(x=>x.pre);
 function renderDrawer(){
   const B=$('#dBody'),F=$('#dFoot');
   if(view==='cart'){
@@ -265,11 +211,12 @@ function renderDrawer(){
       <div class="ctl"><span class="stepper"><button type="button" data-ld="${i}" aria-label="Меньше">−</button><span>${x.q}</span><button type="button" data-li="${i}" aria-label="Больше">+</button></span><button class="rm" type="button" data-lr="${i}">Убрать</button></div></div>`).join('');
     const amount = total();
     F.innerHTML = amount === null
-      ? `<p class="hint">В корзине есть хлеб с пометкой «Цену уточнить». Свяжитесь с пекарней или уберите эти позиции, чтобы продолжить оформление.</p><a class="btn" href="#contacts" id="cartContacts">Контакты пекарни</a>`
+      ? `<p class="hint">В корзине есть позиции с ценой по запросу. Свяжитесь с пекарней или уберите эти позиции, чтобы продолжить оформление.</p><a class="btn" href="#contacts" id="cartContacts">Контакты пекарни</a>`
       : `<div class="sum"><span class="eyebrow">Итого</span><span class="price">${rub(amount)}</span></div><button class="btn solid" type="button" id="toCo">Оформить заказ</button>`;
   } else if(view==='co'){
     $('#dTitle').textContent='Оформление';
-    const pre=hasPre(), preKinds=[...new Set(cart.filter(x=>x.pre).map(x=>x.pre))].filter(k=>SEASONAL[k]);
+    const preKinds=[...new Set(cart.map(x=>x.pre))].filter(k=>Object.hasOwn(SEASONAL,k));
+    const pre=preKinds.length>0, exclusive=cart.some(x=>x.pre==='exclusive');
     const today=new Date().toISOString().slice(0,10);
     B.innerHTML=`<div class="co"><p class="demo-note">Демонстрационное оформление. Заказ не отправляется, деньги не списываются.</p><form id="coForm" novalidate>
       <div class="f"><label class="l" for="c-name">Имя</label><input id="c-name" type="text" autocomplete="name" required></div>
@@ -281,7 +228,8 @@ function renderDrawer(){
       </fieldset>
       <div class="f" id="addrF" hidden><label class="l" for="c-addr">Адрес доставки</label><input id="c-addr" type="text" autocomplete="street-address"></div>
       ${preKinds.map(k=>`<div class="f"><label class="l" for="c-pre-${k}">Дата выдачи: ${SEASONAL[k].pn}</label><select id="c-pre-${k}" data-pre="${SEASONAL[k].holiday}">${SEASONAL[k].pickup.map(d=>`<option>${d}</option>`).join('')}</select></div>`).join('')}
-      ${cart.some(x=>!x.pre)?`<div class="f"><label class="l" for="c-date">${pre?'Дата для остальных позиций':'Дата'}</label><input id="c-date" type="date" min="${today}" value="${today}"></div>`:''}
+      ${exclusive?`<div class="f"><label class="l" for="c-exclusive">Желаемая дата предзаказа</label><input id="c-exclusive" type="date" min="${today}" value="${today}" required><small>Дату выдачи нужно согласовать с пекарней.</small></div>`:''}
+      ${cart.some(x=>!x.pre)?`<div class="f"><label class="l" for="c-date">${pre||exclusive?'Дата для остальных позиций':'Дата'}</label><input id="c-date" type="date" min="${today}" value="${today}"></div>`:''}
       <div class="f"><label class="l" for="c-msg">Комментарий</label><textarea id="c-msg" rows="2" placeholder="Например, нарезать хлеб"></textarea></div>
       <fieldset><legend>Оплата</legend>
         <label class="opt-r"><input type="radio" name="pay" value="online" checked><span>Онлайн: картой или через СБП<small>Пример выбора способа оплаты</small></span></label>
@@ -315,9 +263,11 @@ $('#drawer').addEventListener('click',e=>{
     const name=$('#c-name').value.trim(),phone=$('#c-phone').value.trim();
     if(!name||phone.replace(/\D/g,'').length<10){$('#coErr').textContent='Укажите имя и телефон, чтобы мы подтвердили заказ.';$('#coErr').hidden=false;return}
     if(!$('#c-ok').checked){$('#c-ok').closest('.consent').classList.add('bad');$('#coErr').textContent='Подтвердите, что ознакомились с условиями примера.';$('#coErr').hidden=false;return}
+    const exclusiveDate=$('#c-exclusive');
+    if(exclusiveDate && !exclusiveDate.reportValidity()) return;
     const how=document.querySelector('input[name=how]:checked').value+(document.querySelector('input[name=how]:checked').value==='Доставка'?': '+$('#c-addr').value:'');
     const pay=document.querySelector('input[name=pay]:checked').value;
-    order={no:'МН-'+String(Date.now()).slice(-5),sum:total(),phone,how,pre:[...document.querySelectorAll('select[data-pre]')].map(x=>x.dataset.pre+' — '+x.value).join(', '),paid:false};
+    order={no:'МН-'+String(Date.now()).slice(-5),sum:total(),phone,how,pre:[...document.querySelectorAll('select[data-pre]')].map(x=>x.dataset.pre+' — '+x.value).concat(exclusiveDate ? ['Исключительно для вас — '+exclusiveDate.value] : []).join(', '),paid:false};
     if(pay==='online'){view='pay'}else{view='done';cart=[];save();renderGrid()}
     renderDrawer();
   }

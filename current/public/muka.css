@@ -80,7 +80,7 @@ nav.main a:hover,nav.main a[aria-current]{color:#e9be99;text-decoration:underlin
   text-decoration: underline;
   text-underline-offset: .2em;
 }
-#catalog .price{font:400 clamp(18px,1.6vw,24px)/1 var(--serif);letter-spacing:-.03em}#catalog .price small{font:400 11px var(--sans);color:var(--muted)}
+#catalog .price{font:400 clamp(18px,1.6vw,24px)/1.15 var(--serif);letter-spacing:-.03em;white-space:normal;min-width:0}#catalog .price small{font:400 11px var(--sans);color:var(--muted)}
 #catalog .add{background:none;border:1px solid #a39a8e;border-radius:0;color:var(--ink);font:400 10px/1.2 var(--sans);letter-spacing:.045em;text-transform:uppercase;padding:8px 10px}#catalog .add:hover{background:var(--ink);color:white}
 .more-products,.textlink,.reel-switch{background:transparent;border:0;border-bottom:1px solid currentColor;color:var(--ink);font:400 14px/1.3 var(--sans);padding:4px 0;text-decoration:none}
 .more-products{display:block;margin:32px auto 0}.more-products:hover,.textlink:hover{color:var(--crust)}
