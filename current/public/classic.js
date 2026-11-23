@@ -8,7 +8,7 @@ const CATS=[
  {id:'cakes',name:'Торты',icon:'i-cake',img:'1009_1',kick:'целиком или по частям'},
  {id:'sand',name:'Сэндвичи',icon:'i-sandwich',img:'1012_4c',kick:'на нашем хлебе и круассанах'},
  {id:'exclusive',name:'Исключительно для вас',icon:'i-loaf',img:'1992_1',kick:'готовим по предварительному заказу'},
-];
+].filter(category => RETAIL_PRODUCTS.some(product => product.c === category.id));
 const P = RETAIL_PRODUCTS;
 
 // сезонная выпечка. Панеттоне, куличи и пасха — составы, вес и цены брони 2026 из Telegram. Штоллен — вкусы и цены ПРИМЕРНЫЕ, уточнить.

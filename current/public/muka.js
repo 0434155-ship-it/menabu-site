@@ -11,6 +11,7 @@ function menu(open){
 function route(initial){
  let key=location.hash.slice(1);
  if(key==='exclusive'){selectCategory('exclusive');key='catalog'}
+ else if(key==='catalog' && cat==='exclusive'){selectCategory('bread')}
  if(!Object.hasOwn(names,key)||(SEASONAL[key]&&!SEASONAL[key].open))key='top';
  const separate=separateAreas.has(key);
  document.body.dataset.view=key in SEASONAL?key:'home';document.body.classList.toggle('opt-page',key==='wholesale');
@@ -116,64 +117,68 @@ reelPause.addEventListener('click', () => pauseReel(!reelPaused));
 reducedMotion.addEventListener('change', event => pauseReel(event.matches));
 
 // Лента продукции на публичной странице для партнёров.
-const tradeFilm=el('tradeShelf'), tradeTrack=tradeFilm.firstElementChild, tradePause=el('tradePause');
-const tradeFrames=[...tradeTrack.children];
-for(const frame of tradeFrames){
- const copy=frame.cloneNode(true);
- copy.setAttribute('aria-hidden','true');
- copy.querySelector('img').alt='';
- tradeTrack.append(copy);
+const tradeFilm = el('tradeShelf');
+const tradeFrames = Array.from(tradeFilm.querySelectorAll('figure'));
+const tradePause = el('tradePause');
+let tradePlaying = !reducedMotion.matches;
+let tradeVisible = false;
+let tradeTimer;
+
+function moveTradePage(direction) {
+  const step = tradeFrames[1].offsetLeft - tradeFrames[0].offsetLeft;
+  if (!step) return;
+  const count = Number(getComputedStyle(tradeFilm).getPropertyValue('--shelf-count'));
+  const last = Math.max(tradeFrames.length - count, 0);
+  const first = Math.min(last, Math.round(tradeFilm.scrollLeft / step));
+  let next;
+  if (direction > 0) next = first === last ? 0 : Math.min(first + count, last);
+  else next = first === 0 ? last : Math.max(first - count, 0);
+  tradeFilm.scrollTo({left:next * step, behavior:reducedMotion.matches ? 'instant' : 'smooth'});
 }
-let tradePlaying=!reducedMotion.matches, tradeVisible=false, frameRequest=0, lastTick=0, remainder=0;
-function cancelFilm(){
- if(frameRequest)cancelAnimationFrame(frameRequest);
- frameRequest=0;lastTick=0;remainder=0;
+
+function scheduleTradePage() {
+  clearTimeout(tradeTimer);
+  if (!tradePlaying || !tradeVisible || document.hidden) return;
+  tradeTimer = setTimeout(() => {
+    moveTradePage(1);
+    scheduleTradePage();
+  }, 6500);
 }
-function filmTick(time){
- frameRequest=0;
- if(!tradePlaying||!tradeVisible||document.hidden)return;
- const loop=tradeTrack.children[tradeFrames.length].offsetLeft-tradeTrack.firstElementChild.offsetLeft;
- if(loop>0&&lastTick){
-  remainder+=Math.min(time-lastTick,80)*.025;
-  const distance=Math.floor(remainder);
-  if(distance){remainder-=distance;tradeFilm.scrollLeft=(tradeFilm.scrollLeft+distance)%loop}
- }
- lastTick=time;frameRequest=requestAnimationFrame(filmTick);
+
+function playTrade(playing) {
+  tradePlaying = playing;
+  tradePause.dataset.paused = String(!playing);
+  tradePause.setAttribute('aria-label', playing ? 'Приостановить ленту продукции' : 'Запустить ленту продукции');
+  scheduleTradePage();
 }
-function scheduleFilm(){
- cancelFilm();
- if(tradePlaying&&tradeVisible&&!document.hidden)frameRequest=requestAnimationFrame(filmTick);
+
+function stepTrade(direction) {
+  playTrade(false);
+  moveTradePage(direction);
 }
-function playFilm(playing){
- tradePlaying=playing;
- tradePause.dataset.paused=String(!playing);
- tradePause.setAttribute('aria-label',playing?'Приостановить ленту продукции':'Запустить ленту продукции');
- scheduleFilm();
-}
-function stepFilm(direction){
- playFilm(false);
- const step=tradeFrames[1].offsetLeft-tradeFrames[0].offsetLeft;
- const loop=tradeTrack.children[tradeFrames.length].offsetLeft-tradeFrames[0].offsetLeft;
- if(direction<0&&tradeFilm.scrollLeft<1)tradeFilm.scrollLeft=loop;
- if(direction>0&&tradeFilm.scrollLeft>=loop)tradeFilm.scrollLeft%=loop;
- tradeFilm.scrollBy({left:direction*step,behavior:reducedMotion.matches?'instant':'smooth'});
-}
-el('tradePrev').onclick=()=>stepFilm(-1);el('tradeNext').onclick=()=>stepFilm(1);
-tradePause.onclick=()=>playFilm(!tradePlaying);
-tradeFilm.addEventListener('pointerdown',()=>playFilm(false),{passive:true});
-tradeFilm.addEventListener('wheel',event=>{if(event.deltaX||event.shiftKey)playFilm(false)},{passive:true});
-tradeFilm.addEventListener('keydown',event=>{
- if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();stepFilm(event.key==='ArrowLeft'?-1:1)}
+el('tradePrev').onclick = () => stepTrade(-1);
+el('tradeNext').onclick = () => stepTrade(1);
+tradePause.onclick = () => playTrade(!tradePlaying);
+tradeFilm.addEventListener('pointerdown', () => playTrade(false), {passive:true});
+tradeFilm.addEventListener('wheel', event => { if (event.deltaX || event.shiftKey) playTrade(false); }, {passive:true});
+tradeFilm.addEventListener('keydown', event => {
+  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+  event.preventDefault();
+  stepTrade(event.key === 'ArrowLeft' ? -1 : 1);
 });
-if('IntersectionObserver' in window){
- new IntersectionObserver(([entry])=>{tradeVisible=entry.isIntersecting;scheduleFilm()}).observe(tradeFilm);
-}else{
- const updateTradeVisibility=()=>{tradeVisible=!el('wholesale').hidden;scheduleFilm()};
- document.addEventListener('bakeryroute',updateTradeVisibility);updateTradeVisibility();
+if ('IntersectionObserver' in window) {
+  new IntersectionObserver(([entry]) => {
+    tradeVisible = entry.isIntersecting;
+    scheduleTradePage();
+  }).observe(tradeFilm);
+} else {
+  const checkTradeRoute = () => { tradeVisible = !el('wholesale').hidden; scheduleTradePage(); };
+  document.addEventListener('bakeryroute', checkTradeRoute);
+  checkTradeRoute();
 }
-document.addEventListener('visibilitychange',scheduleFilm);
-reducedMotion.addEventListener('change',event=>playFilm(!event.matches));
-playFilm(tradePlaying);
+document.addEventListener('visibilitychange', scheduleTradePage);
+reducedMotion.addEventListener('change', event => playTrade(!event.matches));
+playTrade(tradePlaying);
 
 const groups=window.MENU_GROUPS,details=window.MENU_DETAIL,cats=el('foodCats'),list=el('dishList'),card=el('dishCard'),slot=el('deskDish'),dlg=el('menuDialog'),mobile=matchMedia('(max-width:760px)');
 let group=0,chosen=2,unfold=false;
